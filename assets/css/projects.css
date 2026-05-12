@@ -1,0 +1,149 @@
+.projects-landing {
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 2rem 1rem;
+}
+
+.projects-header {
+  margin-bottom: 2.5rem;
+  padding-bottom: 1.5rem;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.projects-header h1 {
+  font-size: 2rem;
+  font-weight: 700;
+  margin-bottom: 0.5rem;
+}
+
+.projects-header p {
+  color: #666;
+  font-size: 1.05rem;
+  margin: 0;
+}
+
+.projects-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 1.5rem;
+}
+
+.project-card {
+  background: #fff;
+  border: 1px solid #e8e8e8;
+  border-top: 3px solid #2a7ae2;
+  border-radius: 6px;
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.project-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 24px rgba(0,0,0,0.08);
+}
+
+.project-card h3 {
+  margin: 0.75rem 0 0.5rem;
+  font-size: 1rem;
+  line-height: 1.4;
+}
+
+.project-card h3 a {
+  color: #222;
+  text-decoration: none;
+}
+
+.project-card h3 a:hover {
+  color: #2a7ae2;
+}
+
+.project-description {
+  color: #666;
+  font-size: 0.9rem;
+  line-height: 1.6;
+  flex: 1;
+  margin-bottom: 1.25rem;
+}
+
+.project-card-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.project-number {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #2a7ae2;
+  font-family: monospace;
+  letter-spacing: 1px;
+}
+
+.project-tech {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.3rem;
+  justify-content: flex-end;
+}
+
+.tech-tag {
+  background: #eef3fb;
+  color: #1a5cb0;
+  border-radius: 3px;
+  padding: 0.1rem 0.45rem;
+  font-size: 0.72rem;
+  font-family: monospace;
+  font-weight: 600;
+}
+
+.project-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: auto;
+}
+
+.project-btn {
+  font-size: 0.8rem;
+  font-weight: 600;
+  padding: 0.3rem 0.8rem;
+  border-radius: 4px;
+  text-decoration: none;
+  background: #2a7ae2;
+  color: #fff;
+  transition: background 0.15s ease;
+}
+
+.project-btn:hover {
+  background: #1a5cb0;
+  color: #fff;
+}
+
+.project-btn--outline {
+  background: transparent;
+  color: #2a7ae2;
+  border: 1px solid #2a7ae2;
+}
+
+.project-btn--outline:hover {
+  background: #eef3fb;
+}
+
+.project-btn--ghost {
+  background: transparent;
+  color: #888;
+  border: 1px solid #e0e0e0;
+}
+
+.project-btn--ghost:hover {
+  color: #2a7ae2;
+  border-color: #2a7ae2;
+}
+
+.no-projects {
+  color: #888;
+  font-style: italic;
+}
