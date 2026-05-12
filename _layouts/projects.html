@@ -2,13 +2,212 @@
 layout: default
 ---
 
-<div class="projects-landing">
-  {{ content }}
+<style>
+.projects-page {
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: 1rem;
+}
+
+.projects-hero {
+  background: #0d1117;
+  border-radius: 8px;
+  padding: 2.5rem 2rem;
+  margin-bottom: 2.5rem;
+  position: relative;
+  overflow: hidden;
+}
+
+.projects-hero::before {
+  content: "</>";
+  position: absolute;
+  right: 2rem;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 6rem;
+  font-family: monospace;
+  color: rgba(42, 122, 226, 0.15);
+  font-weight: 700;
+  line-height: 1;
+}
+
+.projects-hero h1 {
+  color: #ffffff;
+  font-size: 1.8rem;
+  font-weight: 700;
+  margin: 0 0 0.5rem;
+}
+
+.projects-hero p {
+  color: #8b949e;
+  margin: 0;
+  font-size: 0.95rem;
+}
+
+.projects-hero .accent {
+  color: #2a7ae2;
+}
+
+.projects-count {
+  display: inline-block;
+  background: rgba(42, 122, 226, 0.15);
+  color: #2a7ae2;
+  border: 1px solid rgba(42, 122, 226, 0.3);
+  border-radius: 20px;
+  padding: 0.2rem 0.75rem;
+  font-size: 0.78rem;
+  font-family: monospace;
+  font-weight: 600;
+  margin-bottom: 1rem;
+}
+
+.projects-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(290px, 1fr));
+  gap: 1.25rem;
+}
+
+.project-card {
+  background: #ffffff;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+  position: relative;
+}
+
+.project-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 24px rgba(42, 122, 226, 0.1);
+  border-color: #2a7ae2;
+}
+
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.project-number {
+  font-family: monospace;
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: #2a7ae2;
+  background: #eef3fb;
+  padding: 0.2rem 0.5rem;
+  border-radius: 3px;
+}
+
+.project-status {
+  width: 8px;
+  height: 8px;
+  background: #28a745;
+  border-radius: 50%;
+  box-shadow: 0 0 6px rgba(40, 167, 69, 0.6);
+}
+
+.project-card h3 {
+  font-size: 0.95rem;
+  font-weight: 700;
+  line-height: 1.4;
+  margin: 0 0 0.6rem;
+}
+
+.project-card h3 a {
+  color: #1a1a2e;
+  text-decoration: none;
+}
+
+.project-card h3 a:hover {
+  color: #2a7ae2;
+}
+
+.project-description {
+  font-size: 0.875rem;
+  color: #555;
+  line-height: 1.6;
+  flex: 1;
+  margin-bottom: 1.25rem;
+}
+
+.project-tech {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.3rem;
+  margin-bottom: 1.25rem;
+}
+
+.tech-tag {
+  background: #0d1117;
+  color: #8b949e;
+  border: 1px solid #30363d;
+  border-radius: 3px;
+  padding: 0.15rem 0.5rem;
+  font-size: 0.7rem;
+  font-family: monospace;
+  font-weight: 500;
+}
+
+.project-links {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  margin-top: auto;
+}
+
+.btn-primary {
+  font-size: 0.78rem;
+  font-weight: 600;
+  padding: 0.35rem 0.9rem;
+  border-radius: 4px;
+  text-decoration: none;
+  background: #2a7ae2;
+  color: #fff;
+  transition: background 0.15s ease;
+}
+
+.btn-primary:hover {
+  background: #1a5cb0;
+  color: #fff;
+}
+
+.btn-secondary {
+  font-size: 0.78rem;
+  font-weight: 600;
+  padding: 0.35rem 0.9rem;
+  border-radius: 4px;
+  text-decoration: none;
+  background: transparent;
+  color: #555;
+  border: 1px solid #e0e0e0;
+  transition: all 0.15s ease;
+}
+
+.btn-secondary:hover {
+  color: #2a7ae2;
+  border-color: #2a7ae2;
+}
+</style>
+
+<div class="projects-page">
+
+  <div class="projects-hero">
+    <span class="projects-count">{{ site.projects.size }} projects</span>
+    <h1>{{ page.title }} <span class="accent">_</span></h1>
+    {{ content }}
+  </div>
 
   {%- if site.projects.size > 0 -%}
     <div class="projects-grid">
       {%- for project in site.projects -%}
         <div class="project-card">
+          <div class="card-header">
+            <span class="project-number">0{{ forloop.index }}</span>
+            <span class="project-status" title="Completed"></span>
+          </div>
           <h3>
             <a href="{{ project.url | relative_url }}">{{ project.title | escape }}</a>
           </h3>
@@ -19,11 +218,12 @@ layout: default
             {%- endfor -%}
           </div>
           <div class="project-links">
-            {%- if project.github -%}
-              <a href="{{ project.github }}" target="_blank">GitHub →</a>
+            <a href="{{ project.url | relative_url }}" class="btn-primary">Read more →</a>
+            {%- if project.github != "" and project.github -%}
+              <a href="{{ project.github }}" target="_blank" class="btn-secondary">GitHub →</a>
             {%- endif -%}
-            {%- if project.live -%}
-              <a href="{{ project.live }}" target="_blank">Live →</a>
+            {%- if project.live != "" and project.live -%}
+              <a href="{{ project.live }}" target="_blank" class="btn-secondary">Live →</a>
             {%- endif -%}
           </div>
         </div>
@@ -32,5 +232,5 @@ layout: default
   {%- else -%}
     <p>No projects yet — check back soon.</p>
   {%- endif -%}
-</div>
 
+</div>
