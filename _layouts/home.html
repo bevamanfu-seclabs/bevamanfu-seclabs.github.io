@@ -28,6 +28,17 @@ layout: default
     text-align: center;
   }
 }
+/* Justified profile text */
+.profile-text p {
+  text-align: justify;
+}
+
+/* Bold name in header */
+.site-title {
+  font-weight: 400 !important;
+  font-size : 25px;
+  
+}
 </style>
 
 <div class="home" >
@@ -40,7 +51,7 @@ layout: default
     
   </div>
    {%- if site.projects.size > 0 -%}
-    <h2 class="post-list-heading">Featured Projects</h2>
+    <h1 class="post-list-heading" style="font-size: 40px">Featured Projects</h1>
     <ul class="post-list">
       {%- for project in site.projects -%}
       <li>
