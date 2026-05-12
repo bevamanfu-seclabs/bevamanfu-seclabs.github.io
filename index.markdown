@@ -4,7 +4,7 @@
 
 layout: home
 
-permalink: /about/
+
 ---
 # Beverlyn Ewuradwoa Amanfu
 Cybersecurity Enthusiast| SOC Analyst Intern
