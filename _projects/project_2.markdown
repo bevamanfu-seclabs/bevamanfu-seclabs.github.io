@@ -6,7 +6,10 @@ tech: [Splunk, Sysmon, Log Analysis, Blue Team, Forensics]
 importance: 1
 
 ---
-## Objective
+## Introduction
+In this TryHackMe Advent of Cyber 2025 room, I investigated suspicious activity targeting TBFC's drone scheduler web application. The Apache web server was receiving unusually long HTTP requests containing Base64-encoded payloads. Security monitoring in Splunk generated alerts indicating that Apache had spawned unexpected system processes.
+
+## Objectives
 
 - Detect and analyze malicious web activity through Apache access and error logs
 - Investigate OS- level attacker actions using Sysmon data
@@ -15,22 +18,96 @@ importance: 1
 
 ## Key Concepts Learned
 
-- Command  Injection Attack  ( Shell Injection) : It allows an attacker to execute OS commands on the server that is running an application
-- Invoke Expression :   A method of executing code in powershell that allows for the evaluation of expressions and the execution of code that is stored in a variable. It preferred by attackers cause it can be used to launch both local and remote payloads.
+**Command  Injection Attack  ( Shell Injection)**
+
+Command Injection is a web application vulnerability that allows attackers to execute operating system commands on the underlying server. This typically occurs when a user input is improperly validated and passed directly into system-level commands.
+In this lab, attackers attempted to exploit a vulnerable script through crafted HTTP requests containing malicious commands. 
+
+**PowerShell Invoke Expression**
+
+Invoke-Expression (IEX) is a PowerShell command that evaluates and executes strings as code. Attackers commonly abuse it to execute malicious payloads locally or remotely while obscuring their true intent. This command is often treated as a high-risk indicator during investigations due to its frequent use in malware and post-exploitation activity. 
+
+**Reconnaissance vs Enumeration**
+
+Reconnaissance is the initial phase of an attack where information about the target environment is gathered. The goal is to identify systems, services, and potential attack surfaces. 
+
+Enumeration involves extracting more detailed information about identified assets, such as usernames, hostnames,shares, services, and privilege information. Attackers often perform enumeration immediately after gaining access to validate privileges and identify lateral movement opportunities.
     
-    
-- Recon vs Enumeration
-Reconnaissance is the first step in any hacking engagement. It's all about gathering information on your target systems or networks to build a comprehensive understanding of the environment you plan to assess
 
-Enumeration is the process of extracting more detailed information  about the assets we discovered during our initial recon.  These information includes usernames and passwords, accessible network folders, hostnames, and machine  names .
 
-## Tools  Used / Involved
+## Tools  Used 
 
-Splunk -  A data platform that collects indexes, searches and analyzes large amounts of machine generated data from various data sources and transforms it into dashboards and other visuals that can be used to gain actionable insights.  — It’s basically a SIEM tool
+**Splunk**  
 
-Sysmon -  A windows system service and device driver that monitors and creates detailed logs of events such as file creation and modification, network activity and other processes.
+A data platform that collects, indexes, searches and analyzes large amounts of machine generated data from various data sources and transforms it into dashboards and other visuals that can be used to gain actionable insights. Splunk was used to identify suspicious web activity  and reconstruct the attack timeline. 
 
-### Walkthrough Summary
+**Sysmon**
 
-TBFC’s drone scheduler web UI is getting strange, long HTTP requests containing Base64 chunks. Splunk raises an alert: “Apache spawned an unusual process.” On some endpoints, these requests cause the web server to execute shell code, which is obfuscated and hidden within the Base64 payloads. For this room, your job as the Blue Teamer is to triage the incident, identify compromised hosts, extract and decode the payloads and determine the scope."
+A Windows system service and device driver that monitors and creates detailed logs of events such as file creation and modification, command -line execution, network activity and other processes.
 
+## Investigation Walkthrough
+
+1. **Detect Suspicious Web Commands**
+
+```splunk
+index=windows_apache_access (cmd.exe OR powershell OR "powershell.exe" OR "Invoke-Expression") 
+| table _time host clientip uri_path uri_query status
+```
+  
+   The investigation began by reviewing Apache access logs for evidence of command injection attempts.The query instructs Splunk to search the Apache Access logs collected from a windows server for events relating to Windows Command prompt, powershell or a powershell executable( cmd.exe, powershell.exe or invoke expression) and displays the results in table. 
+
+![Splunk results showing suspicious requests]({{ '/assets/projects/drone-alone-1.png' | relative_url }})
+
+   The search revealed multiple suspicious HTTP requests containing references to cmd.exe, powershell.exe and Invoke-Expression. These indicators suggested that the attacker was attempting to execute system-level commands through the vunerable web application. The URI query strings also contained unusually long Base64-encoded data, indicating possible obfuscation attempts designed to evade detection. 
+
+
+   **Decode Base64**
+![Splunk results showing suspicious requests]({{ '/assets/projects/drone-alone-decoded.png' | relative_url }})
+   After identifying suspicious requests in the Apache access logs, the Base64-encoded payloads embedded within the HTTP requests were extracted and decoded for further analysis to determine the actual commands being executed by the attacker.The Base64 encoded script  was decoded using base64decode.org
+
+## Looking for Server-Side Errors or Command Execution in Apache Error Logs
+```splunk
+index=windows_apache_error ("cmd.exe" OR "powershell" OR "Internal Server Error”)
+```
+   To determine whether the malicious requests successfully reached the backend, apache error logs the splunk query above was ran. 
+
+![Splunk results showing suspicious requests]({{ '/assets/projects/drone-alone-query2.png' | relative_url }})
+
+Explanation:  The query inspects the Apache error logs from a windows server for  internal failures or signs of execution attempts that could be as a result of malicious requests.  It means that the attackers input was processed by the server but failed during execution. it confirms if the injection attacks reached the back end of the server or remained blocked on the web layer.
+
+Internal Server error is usually associated with server sides crashes or script failures.
+
+
+## Trace Suspicious Process Creation From Apache
+```splunk
+index=windows_sysmon ParentImage="*httpd.exe"
+```
+
+![Splunk results showing suspicious requests]({{ '/assets/projects/drone-alone-query3.png' | relative_url }})
+
+Explanation:  Explore sysmon for the processes that were created by apache. Apache is a webserver hence it should not spawn system processes like cmd.exe or pwershell.exe. If Apache has child processes that include system commands , it is an indicator of a successful OS command injection. 
+
+## Confirm Attacker Enumeration Activity
+```splunk
+index=windows_sysmon *cmd.exe*   *whoami *
+
+```
+
+![Splunk results showing suspicious requests]({{ '/assets/projects/drone-alone-query4.png' | relative_url }})
+
+Explanation: The query searches the windows sysmon logs for that contain cmd.exe and whoami . 
+whoami is a command usually run post exploitation reconnaisance. It helps attackers know the current user and its privilege level and confirms if they have system access. 
+
+## Identify Base64-Encoded PowerShell Payloads
+```splunk
+index=windows_sysmon Image="powershell.exe" (CommandLine="enc" OR CommandLine="-EncodedCommand*" OR CommandLine="Base64")
+
+```
+
+![Splunk results showing suspicious requests]({{ '/assets/projects/drone-alone-query5.png' | relative_url }})
+
+Explanation:  Next step is to identify all successfully encoded commands. Attackers use base64 to encode or hide their real commands
+
+The query shows no results meaning that the encoded payload never run.  
+
+The query searches the sysmon logs from the Windows server for PowerShell executions that use encoded or Base64 related command-line arguments.
