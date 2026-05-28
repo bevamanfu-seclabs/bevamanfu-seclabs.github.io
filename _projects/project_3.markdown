@@ -1,14 +1,9 @@
 ---
 layout: page
-title: MAL:Malware Introduction |TryHackMe
-description: "Configured and troubleshot a site to site VPN lab"
-importance: 1
+title: Static Malware Analysis - MAL Introductory | TryHackMe
+description: "Investigated suspicious executables using static analysis techniques — hashing, VirusTotal lookups, and packer detection with PEiD — to identify malicious files without execution."
+tech: [ Static Malware Analysis, VirusTotal, PEiD, Hashing]
 
 ---
-layout: page
-title: Web Attack Forensics - Drone Alone |TryHackMe
-description: "Investigated a web attack scenario on TryHackMe, analysing Apache logs and Sysmon data to reconstruct a full attack chain using Splunk."
-tech: [Splunk, Sysmon, Log Analysis,  Incident investigation]
-importance: 1
 
----
+
