@@ -2,7 +2,7 @@
 layout: page
 title: Web Attack Forensics - Drone Alone |TryHackMe
 description: "Investigated a web attack scenario on TryHackMe, analysing Apache logs and Sysmon data to reconstruct a full attack chain using Splunk."
-tech: [Splunk, Sysmon, Log Analysis, Blue Team, Forensics]
+tech: [Splunk, Sysmon, Log Analysis,  Incident investigation]
 importance: 1
 
 ---
@@ -47,7 +47,9 @@ A Windows system service and device driver that monitors and creates detailed lo
 
 ## Investigation Walkthrough
 
-1. **Detect Suspicious Web Commands**
+
+
+#### *Detect Suspicious Web Commands*
 
 ```splunk
 index=windows_apache_access (cmd.exe OR powershell OR "powershell.exe" OR "Invoke-Expression") 
@@ -61,53 +63,57 @@ index=windows_apache_access (cmd.exe OR powershell OR "powershell.exe" OR "Invok
    The search revealed multiple suspicious HTTP requests containing references to cmd.exe, powershell.exe and Invoke-Expression. These indicators suggested that the attacker was attempting to execute system-level commands through the vunerable web application. The URI query strings also contained unusually long Base64-encoded data, indicating possible obfuscation attempts designed to evade detection. 
 
 
-   **Decode Base64**
 ![Splunk results showing suspicious requests]({{ '/assets/projects/drone-alone-decoded.png' | relative_url }})
+
    After identifying suspicious requests in the Apache access logs, the Base64-encoded payloads embedded within the HTTP requests were extracted and decoded for further analysis to determine the actual commands being executed by the attacker.The Base64 encoded script  was decoded using base64decode.org
 
-## Looking for Server-Side Errors or Command Execution in Apache Error Logs
+<br><br>
+
+#### *Looking for Server-Side Errors or Command Execution in Apache Error Logs*
 ```splunk
 index=windows_apache_error ("cmd.exe" OR "powershell" OR "Internal Server Error”)
 ```
-   To determine whether the malicious requests successfully reached the backend, apache error logs the splunk query above was ran. 
+   To determine whether the malicious requests successfully reached the backend, apache error logs the splunk query above was ran. The query inspected the Apache error logs from the windows server for internal failures or signs of execution attempts that could be as a result of malicious requests. 
+
 
 ![Splunk results showing suspicious requests]({{ '/assets/projects/drone-alone-query2.png' | relative_url }})
 
-Explanation:  The query inspects the Apache error logs from a windows server for  internal failures or signs of execution attempts that could be as a result of malicious requests.  It means that the attackers input was processed by the server but failed during execution. it confirms if the injection attacks reached the back end of the server or remained blocked on the web layer.
+   The results suggested that the malicious input had been processed by the server side application but failed during execution. Internal Server error is usually associated with server sides crashes or script failures.This stage of the investigation helped confirm that the attack traffic was interacting directly with the backend system rather than being blocked at the web layer.
+<br><br>
 
-Internal Server error is usually associated with server sides crashes or script failures.
 
-
-## Trace Suspicious Process Creation From Apache
+#### *Trace Suspicious Process Creation From Apache*
+ The next phase focused on identifying  processes launched by the Apache web server. Under normal circumstances, Apache ( httpd.exe) should not spawn system utilities such as cmd.exe or powershell.exe. The following Sysmon query  was used to investigate suspicious parent-child process relationships.
 ```splunk
 index=windows_sysmon ParentImage="*httpd.exe"
 ```
-
+   The results revealed that Apache had spawned suspicious system processes, strongly indicating successful command execution the vulnerable appilcation. Observing PowerShell and command prompt process originating from the web server provided strong evidence of command injection activity and confirmed that the attacker had gained the ability to execute operating system commands remotely.
 ![Splunk results showing suspicious requests]({{ '/assets/projects/drone-alone-query3.png' | relative_url }})
+<br><br>
 
-Explanation:  Explore sysmon for the processes that were created by apache. Apache is a webserver hence it should not spawn system processes like cmd.exe or pwershell.exe. If Apache has child processes that include system commands , it is an indicator of a successful OS command injection. 
-
-## Confirm Attacker Enumeration Activity
+#### *Confirm Attacker Enumeration Activity*
 ```splunk
 index=windows_sysmon *cmd.exe*   *whoami *
 
 ```
+   After establishing evidence of command execution, the investigation shifted toward identifying post-exploitation reconnaissance activity performed by the attacker. The query above was used to search for enumeration commands executed on the system. 
 
 ![Splunk results showing suspicious requests]({{ '/assets/projects/drone-alone-query4.png' | relative_url }})
 
-Explanation: The query searches the windows sysmon logs for that contain cmd.exe and whoami . 
-whoami is a command usually run post exploitation reconnaisance. It helps attackers know the current user and its privilege level and confirms if they have system access. 
+   The logs showed the execution of the *whoami* command, which attackers commonly use after gaining access to determine the current user context and privilege level. The activity confirmed that the attacker had achieved successful command execution on the target host and had begun gathering information about the compromised environment. 
+<br><br>
 
-## Identify Base64-Encoded PowerShell Payloads
+#### *Identify Base64-Encoded PowerShell Payloads*
 ```splunk
 index=windows_sysmon Image="powershell.exe" (CommandLine="enc" OR CommandLine="-EncodedCommand*" OR CommandLine="Base64")
 
 ```
+   The final stage of the investigation involved searching Sysmon logs for PowerShell executions involving encoded commands. Attackers frequently use Base64-encoded PowerShell payloads to conceal malicious scripts and evade detection. 
 
 ![Splunk results showing suspicious requests]({{ '/assets/projects/drone-alone-query5.png' | relative_url }})
 
-Explanation:  Next step is to identify all successfully encoded commands. Attackers use base64 to encode or hide their real commands
+   Surprisingly,the search returned no results. Although encoded payloads were clearly identified within the web requests, there was no evidence that encoded PowerShell commands were successfully executed on the host. This suggested that the payloads may have failed during execution or were blocked before completion.  
 
-The query shows no results meaning that the encoded payload never run.  
+## Key Takeways
 
-The query searches the sysmon logs from the Windows server for PowerShell executions that use encoded or Base64 related command-line arguments.
+This investigation provided practical experience in detecting and analyzing command injection attacks using Apache and Sysmon logs.It improved my ability to use Splunk for threat hunting, correlate events across multiple log sources and identify suspicious PowerShell activity.  The lab also demonstrated how attackers use Base64 encoding and PowerShell Obfuscation techniques to hide malicious activity and highlighted the importance of process monitoring in identifying successful exploitation attempts. 
