@@ -67,7 +67,7 @@ index=windows_apache_access (cmd.exe OR powershell OR "powershell.exe" OR "Invok
 
    After identifying suspicious requests in the Apache access logs, the Base64-encoded payloads embedded within the HTTP requests were extracted and decoded for further analysis to determine the actual commands being executed by the attacker.The Base64 encoded script  was decoded using base64decode.org
 
-<br><br>
+<br>
 
 #### *Looking for Server-Side Errors or Command Execution in Apache Error Logs*
 ```splunk
@@ -79,7 +79,7 @@ index=windows_apache_error ("cmd.exe" OR "powershell" OR "Internal Server Errorâ
 ![Splunk results showing suspicious requests]({{ '/assets/projects/drone-alone-query2.png' | relative_url }})
 
    The results suggested that the malicious input had been processed by the server side application but failed during execution. Internal Server error is usually associated with server sides crashes or script failures.This stage of the investigation helped confirm that the attack traffic was interacting directly with the backend system rather than being blocked at the web layer.
-<br><br>
+<br>
 
 
 #### *Trace Suspicious Process Creation From Apache*
@@ -89,7 +89,7 @@ index=windows_sysmon ParentImage="*httpd.exe"
 ```
    The results revealed that Apache had spawned suspicious system processes, strongly indicating successful command execution the vulnerable appilcation. Observing PowerShell and command prompt process originating from the web server provided strong evidence of command injection activity and confirmed that the attacker had gained the ability to execute operating system commands remotely.
 ![Splunk results showing suspicious requests]({{ '/assets/projects/drone-alone-query3.png' | relative_url }})
-<br><br>
+<br>
 
 #### *Confirm Attacker Enumeration Activity*
 ```splunk
@@ -101,7 +101,7 @@ index=windows_sysmon *cmd.exe*   *whoami *
 ![Splunk results showing suspicious requests]({{ '/assets/projects/drone-alone-query4.png' | relative_url }})
 
    The logs showed the execution of the *whoami* command, which attackers commonly use after gaining access to determine the current user context and privilege level. The activity confirmed that the attacker had achieved successful command execution on the target host and had begun gathering information about the compromised environment. 
-<br><br>
+<br>
 
 #### *Identify Base64-Encoded PowerShell Payloads*
 ```splunk
