@@ -3,7 +3,7 @@ layout: page
 title: Web Attack Forensics - Drone Alone |TryHackMe
 description: "Investigated a web attack scenario on TryHackMe, analysing Apache logs and Sysmon data to reconstruct a full attack chain using Splunk."
 tech: [Splunk, Sysmon, Log Analysis,  Incident investigation]
-importance: 2
+
 
 ---
 ## Introduction
@@ -87,7 +87,7 @@ index=windows_apache_error ("cmd.exe" OR "powershell" OR "Internal Server Errorâ
 index=windows_sysmon ParentImage="*httpd.exe"
 ```
    The results revealed that Apache had spawned suspicious system processes, strongly indicating successful command execution the vulnerable appilcation. Observing PowerShell and command prompt process originating from the web server provided strong evidence of command injection activity and confirmed that the attacker had gained the ability to execute operating system commands remotely.
-   
+
 ![Splunk results showing suspicious requests]({{ '/assets/projects/DA/drone-alone-query3.png' | relative_url }})
 <br><br>
 
